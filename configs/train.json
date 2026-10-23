@@ -1,0 +1,40 @@
+{
+  "source": "data/raw/telco.csv",
+  "expected_sha256": "16320c9c1ec72448db59aa0a26a0b95401046bef5d02fd3aeb906448e3055e91",
+  "id_column": "customerID",
+  "target": {"column": "Churn", "positive_label": "Yes", "negative_label": "No"},
+  "split": {"seed": 42, "train": 0.6, "valid": 0.2, "test": 0.2},
+  "first_model_features": ["tenure", "MonthlyCharges"],
+  "features": {
+    "numeric": ["tenure", "MonthlyCharges", "TotalCharges"],
+    "categorical": ["Contract", "InternetService", "PaymentMethod"]
+  },
+  "preprocessing": {
+    "numeric_imputer": "median",
+    "numeric_scaler": "standard",
+    "categorical_imputer_fill_value": "missing",
+    "unknown_category": "ignore"
+  },
+  "threshold": 0.5,
+  "selection": {
+    "metric": "average_precision",
+    "split": "valid",
+    "tie_tolerance": 0.01,
+    "rule": "Highest validation average precision; if several candidates are within tie_tolerance of the best, keep the simplest (lowest complexity_rank)."
+  },
+  "candidates": [
+    {"name": "logistic_regression", "estimator": "LogisticRegression", "complexity_rank": 1,
+     "params": {"max_iter": 1000}},
+    {"name": "decision_tree", "estimator": "DecisionTreeClassifier", "complexity_rank": 2,
+     "params": {"max_depth": 5, "min_samples_leaf": 20, "random_state": 42}},
+    {"name": "random_forest", "estimator": "RandomForestClassifier", "complexity_rank": 3,
+     "params": {"n_estimators": 300, "min_samples_leaf": 10, "n_jobs": 1, "random_state": 42}}
+  ],
+  "outputs": {
+    "model": "models/churn_pipeline.joblib",
+    "metadata": "models/churn_pipeline.metadata.json",
+    "split_assignment": "models/split_assignment.csv",
+    "reference_batch": "models/reference_batch.csv",
+    "reports_dir": "reports/tp02"
+  }
+}

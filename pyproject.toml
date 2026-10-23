@@ -9,10 +9,13 @@ authors = [
 requires-python = ">=3.11,<3.13"
 dependencies = [
     "pandas>=3.1.0",
+    "scikit-learn>=1.9.1",
 ]
 
 [project.scripts]
 telco-inspect = "telco_churn.dataset:main"
+telco-train = "telco_churn.training:main"
+telco-predict = "telco_churn.prediction:main"
 
 [build-system]
 requires = ["uv_build>=0.11.32,<0.12.0"]
