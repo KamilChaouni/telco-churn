@@ -1,0 +1,4 @@
+ignored (volatile)   environment.python_executable: '/home/claude/telco-churn/.venv/bin/python3' -> '/home/claude/telco-churn/.venv/bin/python'
+ignored (volatile)   generated_at_utc: '2026-10-23T15:12:48+00:00' -> '2026-10-23T15:13:00+00:00'
+
+97 fields compared, 0 unexpected difference(s).
