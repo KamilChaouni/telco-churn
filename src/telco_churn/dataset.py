@@ -75,10 +75,14 @@ def inspect(source: Path) -> dict:
 
     missing_cols = [c for c in (ID_COLUMN, TARGET_COLUMN) if c not in df.columns]
     if missing_cols:
+        first = str(df.columns[0])
         raise ValueError(
-            f"Columns {missing_cols} not found; pandas read {df.shape[1]} column(s): "
-            f"{list(df.columns)[:3]}... The file is probably not the original CSV "
-            f"(re-saved by a spreadsheet? quoted lines? BOM?). sha256={file_hash}"
+            f"columns {missing_cols} not found (pandas read {df.shape[1]} column(s), "
+            f"first: {first[:40]!r}{'...' if len(first) > 40 else ''}).\n"
+            f"  sha256 {file_hash}\n"
+            f"  expected {EXPECTED_SHA256}\n"
+            "  This is probably not the original CSV (re-saved by a spreadsheet?). "
+            "Download the pinned original: see references/data_source.md."
         )
 
     missing_na = {c: int(v) for c, v in df.isna().sum().items()}

@@ -24,5 +24,5 @@ def test_hash_changes_with_bytes(tmp_path: Path):
 def test_wrongly_saved_csv_is_rejected(tmp_path: Path):
     bad = tmp_path / "bad.csv"
     bad.write_text('"customerID,Churn"\n"0001-A,No"\n', encoding="utf-8-sig")
-    with pytest.raises(ValueError, match="not the original"):
+    with pytest.raises(ValueError, match="probably not the original"):
         inspect(bad)
