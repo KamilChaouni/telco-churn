@@ -1,0 +1,24 @@
+[project]
+name = "telco-churn"
+version = "0.1.0"
+description = "Telco customer churn project (ESILV MLOps TP01-TP02)"
+readme = "README.md"
+authors = [
+    { name = "Telco Churn team" }
+]
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "pandas>=3.1.0",
+]
+
+[project.scripts]
+telco-inspect = "telco_churn.dataset:main"
+
+[build-system]
+requires = ["uv_build>=0.11.32,<0.12.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
