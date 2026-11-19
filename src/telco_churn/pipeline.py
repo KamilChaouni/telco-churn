@@ -42,14 +42,18 @@ def build_preprocessor(
     remainder="drop": any extra column (customerID, Churn...) is never used as input.
     Unknown categories at inference are encoded as all-zeros (handle_unknown="ignore").
     """
-    numeric_branch = Pipeline([
-        ("imputer", SimpleImputer(strategy=numeric_imputer)),
-        ("scaler", SCALERS[numeric_scaler]()),
-    ])
-    categorical_branch = Pipeline([
-        ("imputer", SimpleImputer(strategy="constant", fill_value=categorical_fill_value)),
-        ("encoder", OneHotEncoder(handle_unknown=unknown_category, sparse_output=False)),
-    ])
+    numeric_branch = Pipeline(
+        [
+            ("imputer", SimpleImputer(strategy=numeric_imputer)),
+            ("scaler", SCALERS[numeric_scaler]()),
+        ]
+    )
+    categorical_branch = Pipeline(
+        [
+            ("imputer", SimpleImputer(strategy="constant", fill_value=categorical_fill_value)),
+            ("encoder", OneHotEncoder(handle_unknown=unknown_category, sparse_output=False)),
+        ]
+    )
     return ColumnTransformer(
         [("num", numeric_branch, list(numeric)), ("cat", categorical_branch, list(categorical))],
         remainder="drop",
@@ -58,7 +62,9 @@ def build_preprocessor(
 
 def build_pipeline(classifier, **preprocessing) -> Pipeline:
     """A fresh preprocessor + the given (unfitted) classifier, as one estimator."""
-    return Pipeline([
-        ("preprocessor", build_preprocessor(**preprocessing)),
-        ("classifier", classifier),
-    ])
+    return Pipeline(
+        [
+            ("preprocessor", build_preprocessor(**preprocessing)),
+            ("classifier", classifier),
+        ]
+    )

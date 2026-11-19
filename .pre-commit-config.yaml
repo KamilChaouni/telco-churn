@@ -1,0 +1,36 @@
+# Lightweight checks run by `git commit` (install once per clone: see README, TP04).
+# Ruff hook version = Ruff version in uv.lock (0.17.5) so CLI and hook agree.
+# Full training, MLflow and pytest are NOT run here (pytest runs manually / in CI, TP05).
+default_install_hook_types: [pre-commit]
+exclude: ^(\.venv.*|data|models|mlartifacts|mlruns|reports|evidence)/
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.5
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+        types_or: [python, pyi]
+        files: ^(src|tests|scripts)/
+      - id: ruff-format
+        types_or: [python, pyi]
+        files: ^(src|tests|scripts)/
+
+  # `entry` overridden to `python -m ...`: same pinned code, but avoids the generated *.exe
+  # launchers that Windows Smart App Control blocks on this machine. Works on any OS.
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        entry: python -m pre_commit_hooks.trailing_whitespace_fixer
+        files: ^(src|tests|scripts|configs)/|^(pyproject\.toml|\.pre-commit-config\.yaml|\.gitignore)$
+      - id: end-of-file-fixer
+        entry: python -m pre_commit_hooks.end_of_file_fixer
+        files: ^(src|tests|scripts|configs)/|^(pyproject\.toml|\.pre-commit-config\.yaml|\.gitignore)$
+      - id: check-yaml
+        entry: python -m pre_commit_hooks.check_yaml
+      - id: check-toml
+        entry: python -m pre_commit_hooks.check_toml
+      - id: check-added-large-files
+        entry: python -m pre_commit_hooks.check_added_large_files
+        args: [--maxkb=3000]

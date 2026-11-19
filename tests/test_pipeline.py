@@ -38,15 +38,17 @@ def numeric_imputer(pipe):
 
 
 def new_customers():
-    return pd.DataFrame({
-        "customerID": ["NEW-1", "NEW-2", "NEW-3"],
-        "tenure": [0, 12, 40],
-        "MonthlyCharges": [20.0, 70.5, 99.9],
-        "TotalCharges": [" ", np.nan, "3996.0"],          # blank text, NaN, numeric text
-        "Contract": ["Month-to-month", "One year", "Weekly plan"],  # last one unseen
-        "InternetService": ["DSL", "Fiber optic", "No"],
-        "PaymentMethod": ["Electronic check", "Mailed check", "Crypto wallet"],  # unseen
-    })
+    return pd.DataFrame(
+        {
+            "customerID": ["NEW-1", "NEW-2", "NEW-3"],
+            "tenure": [0, 12, 40],
+            "MonthlyCharges": [20.0, 70.5, 99.9],
+            "TotalCharges": [" ", np.nan, "3996.0"],  # blank text, NaN, numeric text
+            "Contract": ["Month-to-month", "One year", "Weekly plan"],  # last one unseen
+            "InternetService": ["DSL", "Fiber optic", "No"],
+            "PaymentMethod": ["Electronic check", "Mailed check", "Crypto wallet"],  # unseen
+        }
+    )
 
 
 @needs_data

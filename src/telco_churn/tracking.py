@@ -23,10 +23,9 @@ import argparse
 import json
 import os
 import subprocess
+import sys
 import time
 from pathlib import Path
-
-import sys  # noqa: E402
 
 os.environ.setdefault("MLFLOW_DISABLE_AGENT_HINT", "1")
 if hasattr(sys.stdout, "reconfigure"):  # MLflow prints emoji; Windows consoles default to cp1252
@@ -72,8 +71,13 @@ RUN_NAMES = {  # descriptive names: what each candidate actually is
 
 def dirty_files() -> list[str]:
     try:
-        out = subprocess.run(["git", "status", "--porcelain"], cwd=PROJECT_ROOT,
-                             capture_output=True, text=True, timeout=10).stdout
+        out = subprocess.run(
+            ["git", "status", "--porcelain"],
+            cwd=PROJECT_ROOT,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        ).stdout
     except (OSError, subprocess.SubprocessError):
         return ["<git unavailable>"]
     return [line[3:] for line in out.splitlines() if line.strip()]
@@ -108,23 +112,28 @@ def provenance(cfg, spec, source_hash, assignment_sha, sizes, code, dirty, pipe)
         "candidate": spec["name"],
         "estimator": spec["estimator"],
         "config_params": spec["params"],
-        "classifier_get_params": {k: repr(v) for k, v in
-                                  pipe.named_steps["classifier"].get_params().items()},
+        "classifier_get_params": {
+            k: repr(v) for k, v in pipe.named_steps["classifier"].get_params().items()
+        },
         "features": cfg["features"],
         "never_inputs": [cfg["id_column"], t["column"]],
         "class_mapping": {t["negative_label"]: 0, t["positive_label"]: 1},
         "positive_class": f"{t['column']} = {t['positive_label']} -> 1",
         "preprocessing": cfg["preprocessing"],
         "input_parsing": "telco_churn.features.prepare_features: blank numeric text -> NaN, "
-                         "malformed numeric text -> error, missing column -> error",
+        "malformed numeric text -> error, missing column -> error",
         "source": {"path": cfg["source"], "sha256": source_hash},
-        "split": {**cfg["split"], "stratified_on": t["column"], "sizes": sizes,
-                  "assignment_artifact": "split/split_assignment.csv",
-                  "assignment_sha256": assignment_sha},
+        "split": {
+            **cfg["split"],
+            "stratified_on": t["column"],
+            "sizes": sizes,
+            "assignment_artifact": "split/split_assignment.csv",
+            "assignment_sha256": assignment_sha,
+        },
         "evaluation": {
             "split": "valid (test reserved, not evaluated in TP03)",
             "primary_metric": "average_precision from predict_proba column of class 1 "
-                              "(located via classes_)",
+            "(located via classes_)",
             "threshold": cfg["threshold"],
             "thresholded_metrics": ["precision", "recall", "f1", "accuracy"],
             "confusion_matrix_order": "rows true [0, 1], cols predicted [0, 1]",
@@ -140,29 +149,34 @@ def run_candidate(spec, cfg, data, ctx) -> dict:
     name = spec["name"]
     run_name = RUN_NAMES.get(name, name)
     with mlflow.start_run(run_name=run_name) as run:
-        pipe = build_pipeline(build_classifier(spec["estimator"], spec["params"]),
-                              **preprocessing_kwargs(cfg))  # fresh, unfitted
-        mlflow.log_params({
-            "candidate": name,
-            "model_type": spec["estimator"],
-            **{f"clf_{k}": v for k, v in spec["params"].items()},
-            "split_seed": cfg["split"]["seed"],
-            "split_ratios": f"{cfg['split']['train']}/{cfg['split']['valid']}/{cfg['split']['test']}",
-            "threshold": cfg["threshold"],
-            "numeric_imputer": cfg["preprocessing"]["numeric_imputer"],
-            "numeric_scaler": cfg["preprocessing"]["numeric_scaler"],
-            "categorical_unknown": cfg["preprocessing"]["unknown_category"],
-            "n_features_raw": len(X_train.columns),
-        })
-        mlflow.set_tags({
-            "git_commit": ctx["code"]["commit"],
-            "git_dirty": str(bool(ctx["dirty"])),
-            "data_sha256": ctx["source_hash"],
-            "split_assignment_sha256": ctx["assignment_sha"],
-            "baseline": str(spec.get("baseline", False)),
-            "complexity_rank": str(spec["complexity_rank"]),
-            "selection_metric": cfg["selection"]["metric"],
-        })
+        pipe = build_pipeline(
+            build_classifier(spec["estimator"], spec["params"]), **preprocessing_kwargs(cfg)
+        )  # fresh, unfitted
+        mlflow.log_params(
+            {
+                "candidate": name,
+                "model_type": spec["estimator"],
+                **{f"clf_{k}": v for k, v in spec["params"].items()},
+                "split_seed": cfg["split"]["seed"],
+                "split_ratios": f"{cfg['split']['train']}/{cfg['split']['valid']}/{cfg['split']['test']}",
+                "threshold": cfg["threshold"],
+                "numeric_imputer": cfg["preprocessing"]["numeric_imputer"],
+                "numeric_scaler": cfg["preprocessing"]["numeric_scaler"],
+                "categorical_unknown": cfg["preprocessing"]["unknown_category"],
+                "n_features_raw": len(X_train.columns),
+            }
+        )
+        mlflow.set_tags(
+            {
+                "git_commit": ctx["code"]["commit"],
+                "git_dirty": str(bool(ctx["dirty"])),
+                "data_sha256": ctx["source_hash"],
+                "split_assignment_sha256": ctx["assignment_sha"],
+                "baseline": str(spec.get("baseline", False)),
+                "complexity_rank": str(spec["complexity_rank"]),
+                "selection_metric": cfg["selection"]["metric"],
+            }
+        )
         mlflow.log_input(ctx["train_ds"], context="training")
         mlflow.log_input(ctx["valid_ds"], context="validation")
 
@@ -171,20 +185,32 @@ def run_candidate(spec, cfg, data, ctx) -> dict:
         fit_seconds = time.perf_counter() - start
         metrics = evaluate(pipe, X_valid, y_valid, cfg["threshold"])
 
-        mlflow.log_metrics({
-            "val_average_precision": metrics["average_precision"],
-            "val_precision": metrics["precision"],
-            "val_recall": metrics["recall"],
-            "val_f1": metrics["f1"],
-            "val_accuracy": metrics["accuracy"],
-            "fit_seconds": fit_seconds,
-        })
+        mlflow.log_metrics(
+            {
+                "val_average_precision": metrics["average_precision"],
+                "val_precision": metrics["precision"],
+                "val_recall": metrics["recall"],
+                "val_f1": metrics["f1"],
+                "val_accuracy": metrics["accuracy"],
+                "fit_seconds": fit_seconds,
+            }
+        )
         cm_path = confusion_csv(metrics, ctx["tmp"] / name / "confusion_matrix_valid.csv")
         mlflow.log_artifact(str(cm_path), artifact_path="evaluation")
         mlflow.log_dict(metrics["confusion_matrix"], "evaluation/confusion_matrix_valid.json")
-        mlflow.log_dict(provenance(cfg, spec, ctx["source_hash"], ctx["assignment_sha"],
-                                   ctx["sizes"], ctx["code"], ctx["dirty"], pipe),
-                        "provenance.json")
+        mlflow.log_dict(
+            provenance(
+                cfg,
+                spec,
+                ctx["source_hash"],
+                ctx["assignment_sha"],
+                ctx["sizes"],
+                ctx["code"],
+                ctx["dirty"],
+                pipe,
+            ),
+            "provenance.json",
+        )
         mlflow.log_artifact(str(ctx["assignment_path"]), artifact_path="split")
 
         model_info = mlflow.sklearn.log_model(
@@ -195,11 +221,18 @@ def run_candidate(spec, cfg, data, ctx) -> dict:
         )
         print(f"  {run_name:26} run {run.info.run_id}  AP={metrics['average_precision']:.4f}")
         return {
-            "model": name, "run_name": run_name, "run_id": run.info.run_id,
-            "model_uri": model_info.model_uri, "model_id": model_info.model_id,
-            "estimator": spec["estimator"], "baseline": spec.get("baseline", False),
-            "complexity_rank": spec["complexity_rank"], "params": spec["params"],
-            "fit_seconds": fit_seconds, "pipeline": pipe, **metrics,
+            "model": name,
+            "run_name": run_name,
+            "run_id": run.info.run_id,
+            "model_uri": model_info.model_uri,
+            "model_id": model_info.model_id,
+            "estimator": spec["estimator"],
+            "baseline": spec.get("baseline", False),
+            "complexity_rank": spec["complexity_rank"],
+            "params": spec["params"],
+            "fit_seconds": fit_seconds,
+            "pipeline": pipe,
+            **metrics,
         }
 
 
@@ -207,33 +240,52 @@ def register(selected: dict) -> dict:
     version = mlflow.register_model(selected["model_uri"], REGISTERED_MODEL)
     client = MlflowClient()
     client.set_registered_model_alias(REGISTERED_MODEL, ALIAS, version.version)
-    client.set_model_version_tag(REGISTERED_MODEL, version.version, "source_run_id",
-                                 selected["run_id"])
+    client.set_model_version_tag(
+        REGISTERED_MODEL, version.version, "source_run_id", selected["run_id"]
+    )
     resolved = client.get_model_version_by_alias(REGISTERED_MODEL, ALIAS)
-    return {"name": REGISTERED_MODEL, "version": str(version.version), "alias": ALIAS,
-            "alias_resolves_to_version": str(resolved.version),
-            "alias_uri": f"models:/{REGISTERED_MODEL}@{ALIAS}",
-            "version_uri": f"models:/{REGISTERED_MODEL}/{version.version}"}
+    return {
+        "name": REGISTERED_MODEL,
+        "version": str(version.version),
+        "alias": ALIAS,
+        "alias_resolves_to_version": str(resolved.version),
+        "alias_uri": f"models:/{REGISTERED_MODEL}@{ALIAS}",
+        "version_uri": f"models:/{REGISTERED_MODEL}/{version.version}",
+    }
 
 
 def export_comparison(experiment_id: str, run_ids: list[str]) -> pd.DataFrame:
     """Optional extension: comparison table from mlflow.search_runs, not transcribed."""
     runs = mlflow.search_runs([experiment_id], order_by=["metrics.val_average_precision DESC"])
     runs = runs[runs["run_id"].isin(run_ids)]
-    cols = ["run_id", "tags.mlflow.runName", "params.model_type", "metrics.val_average_precision",
-            "metrics.val_precision", "metrics.val_recall", "metrics.val_f1",
-            "metrics.val_accuracy", "metrics.fit_seconds", "tags.git_commit", "tags.data_sha256"]
+    cols = [
+        "run_id",
+        "tags.mlflow.runName",
+        "params.model_type",
+        "metrics.val_average_precision",
+        "metrics.val_precision",
+        "metrics.val_recall",
+        "metrics.val_f1",
+        "metrics.val_accuracy",
+        "metrics.fit_seconds",
+        "tags.git_commit",
+        "tags.data_sha256",
+    ]
     return runs[cols]
 
 
 def main(argv=None) -> None:
     parser = argparse.ArgumentParser(description="Tracked candidate training with MLflow.")
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
-    parser.add_argument("--tracking-uri",
-                        default=os.environ.get("MLFLOW_TRACKING_URI", DEFAULT_TRACKING_URI))
+    parser.add_argument(
+        "--tracking-uri", default=os.environ.get("MLFLOW_TRACKING_URI", DEFAULT_TRACKING_URI)
+    )
     parser.add_argument("--experiment", default=EXPERIMENT)
-    parser.add_argument("--no-register", action="store_true",
-                        help="log runs only; register the model by hand in the UI")
+    parser.add_argument(
+        "--no-register",
+        action="store_true",
+        help="log runs only; register the model by hand in the UI",
+    )
     args = parser.parse_args(argv)
 
     cfg = load_config(args.config.resolve())
@@ -254,21 +306,35 @@ def main(argv=None) -> None:
     mlflow.set_tracking_uri(args.tracking_uri)
     experiment = mlflow.set_experiment(args.experiment)
     ctx = {
-        "code": code, "dirty": dirty, "source_hash": source_hash,
-        "assignment_sha": assignment_sha, "assignment_path": assignment_path,
-        "sizes": {k: len(v) for k, v in splits.items()}, "tmp": REPORTS / "_tmp",
-        "train_ds": mlflow.data.from_pandas(dataset_frame(splits["train"], cfg),
-                                            name="telco_train", targets=cfg["target"]["column"],
-                                            source=cfg["source"]),
-        "valid_ds": mlflow.data.from_pandas(dataset_frame(splits["valid"], cfg),
-                                            name="telco_valid", targets=cfg["target"]["column"],
-                                            source=cfg["source"]),
+        "code": code,
+        "dirty": dirty,
+        "source_hash": source_hash,
+        "assignment_sha": assignment_sha,
+        "assignment_path": assignment_path,
+        "sizes": {k: len(v) for k, v in splits.items()},
+        "tmp": REPORTS / "_tmp",
+        "train_ds": mlflow.data.from_pandas(
+            dataset_frame(splits["train"], cfg),
+            name="telco_train",
+            targets=cfg["target"]["column"],
+            source=cfg["source"],
+        ),
+        "valid_ds": mlflow.data.from_pandas(
+            dataset_frame(splits["valid"], cfg),
+            name="telco_valid",
+            targets=cfg["target"]["column"],
+            source=cfg["source"],
+        ),
     }
-    print(f"Tracking {args.tracking_uri}  experiment {args.experiment} (id {experiment.experiment_id})")
+    print(
+        f"Tracking {args.tracking_uri}  experiment {args.experiment} (id {experiment.experiment_id})"
+    )
     print(f"Split assignment identical to TP02: {same_as_tp02}")
 
-    rows = [run_candidate(spec, cfg, (X_train, y_train, X_valid, y_valid), ctx)
-            for spec in candidate_specs(cfg)]
+    rows = [
+        run_candidate(spec, cfg, (X_train, y_train, X_valid, y_valid), ctx)
+        for spec in candidate_specs(cfg)
+    ]
     chosen, reason = select_model(rows, cfg)
     selected = next(r for r in rows if r["model"] == chosen)
 
@@ -288,29 +354,55 @@ def main(argv=None) -> None:
     record = {
         "tracking_uri": args.tracking_uri,
         "experiment": {"name": args.experiment, "id": experiment.experiment_id},
-        "selected": {"candidate": chosen, "run_name": selected["run_name"],
-                     "run_id": selected["run_id"], "logged_model_uri": selected["model_uri"],
-                     "logged_model_id": selected["model_id"]},
+        "selected": {
+            "candidate": chosen,
+            "run_name": selected["run_name"],
+            "run_id": selected["run_id"],
+            "logged_model_uri": selected["model_uri"],
+            "logged_model_id": selected["model_id"],
+        },
         "registry": registry,
-        "selection": {"metric": cfg["selection"]["metric"], "split": "valid",
-                      "tie_tolerance": cfg["selection"]["tie_tolerance"], "decision": reason},
-        "candidates": [{k: r[k] for k in ("model", "run_name", "run_id", "model_uri",
-                                         "average_precision", "precision", "recall", "f1",
-                                         "accuracy", "fit_seconds")} for r in rows],
-        "git_commit": code["commit"], "git_dirty_files": dirty,
-        "data_sha256": source_hash, "split_assignment_sha256": assignment_sha,
+        "selection": {
+            "metric": cfg["selection"]["metric"],
+            "split": "valid",
+            "tie_tolerance": cfg["selection"]["tie_tolerance"],
+            "decision": reason,
+        },
+        "candidates": [
+            {
+                k: r[k]
+                for k in (
+                    "model",
+                    "run_name",
+                    "run_id",
+                    "model_uri",
+                    "average_precision",
+                    "precision",
+                    "recall",
+                    "f1",
+                    "accuracy",
+                    "fit_seconds",
+                )
+            }
+            for r in rows
+        ],
+        "git_commit": code["commit"],
+        "git_dirty_files": dirty,
+        "data_sha256": source_hash,
+        "split_assignment_sha256": assignment_sha,
         "split_assignment_same_as_tp02": same_as_tp02,
         "threshold": cfg["threshold"],
         "environment": {**versions(), "mlflow": mlflow.__version__},
     }
-    (REPORTS / "tracking_record.json").write_text(json.dumps(record, indent=2) + "\n",
-                                                  encoding="utf-8")
+    (REPORTS / "tracking_record.json").write_text(
+        json.dumps(record, indent=2) + "\n", encoding="utf-8"
+    )
     print(f"Selected: {selected['run_name']} - {reason}")
     print(f"  run id    : {selected['run_id']}")
     print(f"  model uri : {selected['model_uri']}")
     if registry:
         print(f"  registered: {registry['name']} v{registry['version']} @{registry['alias']}")
-    print(f"Record: reports/tp03/tracking_record.json, comparison_runs.csv, reference_batch.csv")
+    print("Record: reports/tp03/tracking_record.json, comparison_runs.csv, reference_batch.csv")
 
 
 if __name__ == "__main__":

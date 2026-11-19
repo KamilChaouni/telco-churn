@@ -1,0 +1,24 @@
+$ uv run ruff check src/telco_churn tests scripts   (before)
+src\telco_churn\registry_inference.py:11:1: I001 [*] Import block is un-sorted or un-formatted
+src\telco_churn\tracking.py:20:1: I001 [*] Import block is un-sorted or un-formatted
+src\telco_churn\tracking.py:313:11: F541 [*] f-string without any placeholders
+src\telco_churn\training.py:304:11: F541 [*] f-string without any placeholders
+src\telco_churn\training.py:305:11: F541 [*] f-string without any placeholders
+tests\test_input_contract.py:3:1: I001 [*] Import block is un-sorted or un-formatted
+Found 6 errors.
+[*] 6 fixable with `--fix`.
+
+$ uv run ruff format --check src/telco_churn tests scripts   (before)
+unformatted: File would be reformatted
+unformatted: File would be reformatted
+unformatted: File would be reformatted
+unformatted: File would be reformatted
+unformatted: File would be reformatted
+unformatted: File would be reformatted
+unformatted: File would be reformatted
+unformatted: File would be reformatted
+unformatted: File would be reformatted
+unformatted: File would be reformatted
+unformatted: File would be reformatted
+unformatted: File would be reformatted
+12 files would be reformatted, 6 files already formatted

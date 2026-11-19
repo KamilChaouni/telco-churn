@@ -1,0 +1,23 @@
+...........................                                              [100%]
+============================== warnings summary ===============================
+.venv\Lib\site-packages\coverage\core.py:108
+  C:\Users\kamil\Downloads\telco-churn\.venv\Lib\site-packages\coverage\core.py:108: CoverageWarning: Couldn't import C tracer: DLL load failed while importing tracer: Une stratégie de contrôle d’application a bloqué ce fichier. (no-ctracer); see https://coverage.readthedocs.io/en/7.17.3/messages.html#warning-no-ctracer
+    warn(f"Couldn't import C tracer: {IMPORT_ERROR}", slug="no-ctracer", once=True)
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=============================== tests coverage ================================
+______________ coverage: platform win32, python 3.12.15-final-0 _______________
+Name                                    Stmts   Miss Branch BrPart  Cover   Missing
+-----------------------------------------------------------------------------------
+src\telco_churn\__init__.py                 0      0      0      0   100%
+src\telco_churn\dataset.py                 76     35     14      2    52%   58, 85-108, 145-173, 177
+src\telco_churn\evaluation.py              12      4      0      0    67%   25-28
+src\telco_churn\features.py                36      1     12      1    96%   61
+src\telco_churn\pipeline.py                22      3      2      0    79%   27-29
+src\telco_churn\prediction.py              39     14      4      1    65%   31, 47-58, 62
+src\telco_churn\registry_inference.py      52     52      6      0     0%   11-98
+src\telco_churn\tracking.py               126    126      8      0     0%   20-409
+src\telco_churn\training.py               154     97     12      3    36%   46, 49, 70-74, 93-103, 110-111, 122-129, 133-154, 158-169, 176-185, 192-193, 201, 205-206, 210-213, 228, 232-312, 316-343, 347-360, 364
+-----------------------------------------------------------------------------------
+TOTAL                                     517    332     58      7    36%
+Coverage XML written to file coverage.xml
+27 passed, 1 warning in 3.97s

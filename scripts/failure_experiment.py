@@ -28,9 +28,11 @@ def scores(pipeline, batch, threshold):
 
 def summary(base, new):
     diff = new - base
-    return {"mean_score_before": round(float(base.mean()), 4),
-            "mean_score_after": round(float(new.mean()), 4),
-            "max_abs_change": round(float(np.max(np.abs(diff))), 4)}
+    return {
+        "mean_score_before": round(float(base.mean()), 4),
+        "mean_score_after": round(float(new.mean()), 4),
+        "max_abs_change": round(float(np.max(np.abs(diff))), 4),
+    }
 
 
 def main() -> int:
@@ -48,8 +50,11 @@ def main() -> int:
         scores(pipeline, broken, threshold)
         results["schema_failure"] = {"raised": False, "verdict": "PROBLEM: silent prediction"}
     except (ValueError, KeyError) as error:
-        results["schema_failure"] = {"raised": True, "error": str(error),
-                                     "verdict": "visible failure, no prediction produced"}
+        results["schema_failure"] = {
+            "raised": True,
+            "error": str(error),
+            "verdict": "visible failure, no prediction produced",
+        }
 
     # 2. Supported missingness
     missing = batch.copy()
@@ -58,7 +63,9 @@ def main() -> int:
     missing.loc[missing.index[5:10], "TotalCharges"] = np.nan
     results["supported_missingness"] = {
         "rows_changed": 10,
-        "imputed_with_train_median": meta["learned_statistics"]["numeric_imputer_medians"]["TotalCharges"],
+        "imputed_with_train_median": meta["learned_statistics"]["numeric_imputer_medians"][
+            "TotalCharges"
+        ],
         **summary(base, scores(pipeline, missing, threshold)),
         "verdict": "accepted by policy (blank text and NaN -> train median); scores change for those rows",
     }
@@ -69,11 +76,12 @@ def main() -> int:
     n_renamed = int((batch["Contract"] == "Month-to-month").sum())
     unseen = sorted(set(renamed["Contract"]) - set(seen["Contract"]))
     results["shift_renamed_category"] = {
-        "rows_changed": n_renamed, "unseen_values": unseen,
+        "rows_changed": n_renamed,
+        "unseen_values": unseen,
         **summary(base, scores(pipeline, renamed, threshold)),
         "raised": False,
         "verdict": "no error (handle_unknown='ignore' -> all-zero one-hot), but predictions "
-                   "for these customers are no longer backed by training data",
+        "for these customers are no longer backed by training data",
     }
 
     # 3b. Distribution shift - values far outside the training range

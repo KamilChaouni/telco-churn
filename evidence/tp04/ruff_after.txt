@@ -1,0 +1,6 @@
+$ uv run ruff check src/telco_churn tests scripts   (after --fix + review)
+All checks passed!
+$ uv run ruff format --check src/telco_churn tests scripts
+18 files already formatted
+$ uv run pytest -q
+27 passed in 2.18s

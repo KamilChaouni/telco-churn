@@ -13,10 +13,9 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
-
-import sys  # noqa: E402
 
 os.environ.setdefault("MLFLOW_DISABLE_AGENT_HINT", "1")
 if hasattr(sys.stdout, "reconfigure"):  # MLflow prints emoji; Windows consoles default to cp1252
@@ -37,11 +36,14 @@ REPORTS = PROJECT_ROOT / "reports" / "tp03"
 
 
 def main(argv=None) -> int:
-    parser = argparse.ArgumentParser(description="Score customers with models:/telco-churn@candidate")
+    parser = argparse.ArgumentParser(
+        description="Score customers with models:/telco-churn@candidate"
+    )
     parser.add_argument("--model-uri", default="models:/telco-churn@candidate")
     parser.add_argument("--input", type=Path, default=REPORTS / "reference_batch.csv")
-    parser.add_argument("--tracking-uri",
-                        default=os.environ.get("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000"))
+    parser.add_argument(
+        "--tracking-uri", default=os.environ.get("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000")
+    )
     parser.add_argument("--threshold", type=float, default=0.5)
     parser.add_argument("--label", default="check")
     args = parser.parse_args(argv)
@@ -75,11 +77,14 @@ def main(argv=None) -> int:
     }
     if original is not None:
         diff = float(np.max(np.abs(scores - original)))
-        result.update({
-            "max_abs_score_difference": diff, "tolerance": TOLERANCE,
-            "scores_agree": diff <= TOLERANCE,
-            "class_predictions_agree": bool(np.array_equal(preds, original_pred)),
-        })
+        result.update(
+            {
+                "max_abs_score_difference": diff,
+                "tolerance": TOLERANCE,
+                "scores_agree": diff <= TOLERANCE,
+                "class_predictions_agree": bool(np.array_equal(preds, original_pred)),
+            }
+        )
     out = REPORTS / f"inference_{args.label}.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")

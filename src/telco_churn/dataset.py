@@ -60,10 +60,7 @@ def environment_info() -> dict:
         "python_executable": sys.executable,
         "platform": platform.platform(),
         "machine": platform.machine(),
-        "packages": {
-            name: metadata.version(name)
-            for name in ("pandas", "numpy", "telco-churn")
-        },
+        "packages": {name: metadata.version(name) for name in ("pandas", "numpy", "telco-churn")},
     }
 
 
@@ -112,7 +109,9 @@ def inspect(source: Path) -> dict:
         "report_version": 1,
         "generated_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "source": {
-            "path": str(source.relative_to(PROJECT_ROOT)) if source.is_relative_to(PROJECT_ROOT) else str(source),
+            "path": str(source.relative_to(PROJECT_ROOT))
+            if source.is_relative_to(PROJECT_ROOT)
+            else str(source),
             "size_bytes": source.stat().st_size,
             "sha256": file_hash,
             "matches_expected_sha256": file_hash == EXPECTED_SHA256,
@@ -160,12 +159,16 @@ def main(argv: list[str] | None = None) -> None:
 
     print(f"Report written to {args.output}")
     print(f"Rows x columns : {report['shape']['rows']} x {report['shape']['columns']}")
-    print(f"SHA-256        : {report['source']['sha256']} "
-          f"(expected: {report['source']['matches_expected_sha256']})")
+    print(
+        f"SHA-256        : {report['source']['sha256']} "
+        f"(expected: {report['source']['matches_expected_sha256']})"
+    )
     print(f"Target counts  : {report['target']['counts']}")
     print(f"Duplicate IDs  : {report['customer_id']['duplicated_rows']}")
-    print(f"NaN / blank    : {report['missing_values']['isna_total']} / "
-          f"{report['missing_values']['blank_or_whitespace_total']}")
+    print(
+        f"NaN / blank    : {report['missing_values']['isna_total']} / "
+        f"{report['missing_values']['blank_or_whitespace_total']}"
+    )
     if not report["source"]["matches_expected_sha256"]:
         print("WARNING: source hash differs from the documented original snapshot.")
 

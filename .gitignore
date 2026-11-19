@@ -49,3 +49,10 @@ mlflow.db
 mlflow.db-*
 mlartifacts/
 mlruns/
+
+# TP04 - test/lint/coverage caches
+.ruff_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/

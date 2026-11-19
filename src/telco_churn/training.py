@@ -35,6 +35,7 @@ DEFAULT_CONFIG = PROJECT_ROOT / "configs" / "train.json"
 
 # ---------- loading ----------
 
+
 def load_config(path: Path) -> dict:
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
@@ -50,6 +51,7 @@ def load_data(cfg: dict) -> tuple[pd.DataFrame, str]:
 
 
 # ---------- splitting ----------
+
 
 def split_data(df: pd.DataFrame, cfg: dict) -> dict[str, pd.DataFrame]:
     """Stratified 60/20/20 with one seed. Same seed + same file => same customers."""
@@ -86,6 +88,7 @@ def xy(part: pd.DataFrame, cfg: dict, numeric=None, categorical=None):
 
 # ---------- milestone 1: first model ----------
 
+
 def first_model_report(splits, cfg) -> dict:
     cols = cfg["first_model_features"]
     X_train, y_train = xy(splits["train"], cfg, numeric=cols, categorical=[])
@@ -102,38 +105,52 @@ def first_model_report(splits, cfg) -> dict:
 
 # ---------- milestone 3: fair comparison ----------
 
+
 def preprocessing_kwargs(cfg) -> dict:
     p, f = cfg["preprocessing"], cfg["features"]
     return {
-        "numeric": f["numeric"], "categorical": f["categorical"],
-        "numeric_imputer": p["numeric_imputer"], "numeric_scaler": p["numeric_scaler"],
+        "numeric": f["numeric"],
+        "categorical": f["categorical"],
+        "numeric_imputer": p["numeric_imputer"],
+        "numeric_scaler": p["numeric_scaler"],
         "categorical_fill_value": p["categorical_imputer_fill_value"],
         "unknown_category": p["unknown_category"],
     }
 
 
 def candidate_specs(cfg) -> list[dict]:
-    baseline = {"name": "majority_baseline", "estimator": "DummyClassifier",
-                "complexity_rank": 0, "params": {"strategy": "most_frequent"}, "baseline": True}
+    baseline = {
+        "name": "majority_baseline",
+        "estimator": "DummyClassifier",
+        "complexity_rank": 0,
+        "params": {"strategy": "most_frequent"},
+        "baseline": True,
+    }
     return [baseline] + cfg["candidates"]
 
 
 def compare_candidates(X_train, y_train, X_valid, y_valid, cfg):
     fitted, rows = {}, []
     for spec in candidate_specs(cfg):
-        pipe = build_pipeline(build_classifier(spec["estimator"], spec["params"]),
-                              **preprocessing_kwargs(cfg))  # fresh state every time
+        pipe = build_pipeline(
+            build_classifier(spec["estimator"], spec["params"]), **preprocessing_kwargs(cfg)
+        )  # fresh state every time
         start = time.perf_counter()
         pipe.fit(X_train, y_train)
         fit_seconds = time.perf_counter() - start
         metrics = evaluate(pipe, X_valid, y_valid, cfg["threshold"])
         fitted[spec["name"]] = pipe
-        rows.append({
-            "model": spec["name"], "estimator": spec["estimator"],
-            "baseline": spec.get("baseline", False),
-            "complexity_rank": spec["complexity_rank"], "params": spec["params"],
-            "fit_seconds": round(fit_seconds, 3), **metrics,
-        })
+        rows.append(
+            {
+                "model": spec["name"],
+                "estimator": spec["estimator"],
+                "baseline": spec.get("baseline", False),
+                "complexity_rank": spec["complexity_rank"],
+                "params": spec["params"],
+                "fit_seconds": round(fit_seconds, 3),
+                **metrics,
+            }
+        )
     return fitted, rows
 
 
@@ -154,22 +171,30 @@ def select_model(rows, cfg) -> tuple[str, str]:
 
 # ---------- milestone 4: saving ----------
 
+
 def git_identity() -> dict:
     def run(*args):
         try:
-            return subprocess.run(["git", *args], cwd=PROJECT_ROOT, capture_output=True,
-                                  text=True, timeout=10).stdout.strip()
+            return subprocess.run(
+                ["git", *args], cwd=PROJECT_ROOT, capture_output=True, text=True, timeout=10
+            ).stdout.strip()
         except (OSError, subprocess.SubprocessError):
             return ""
+
     commit = run("rev-parse", "HEAD")
-    return {"commit": commit or "unknown",
-            "dirty_working_tree": bool(run("status", "--porcelain")) if commit else None}
+    return {
+        "commit": commit or "unknown",
+        "dirty_working_tree": bool(run("status", "--porcelain")) if commit else None,
+    }
 
 
 def versions() -> dict:
     names = ["scikit-learn", "pandas", "numpy", "scipy", "joblib", "telco-churn"]
-    return {"python": platform.python_version(), "platform": platform.platform(),
-            **{n: metadata.version(n) for n in names}}
+    return {
+        "python": platform.python_version(),
+        "platform": platform.platform(),
+        **{n: metadata.version(n) for n in names},
+    }
 
 
 def file_sha256(path: Path) -> str:
@@ -186,12 +211,16 @@ def learned_statistics(pipe) -> dict:
     num = pre.named_transformers_["num"]
     cat = pre.named_transformers_["cat"]
     return {
-        "numeric_imputer_medians": dict(zip(pre.transformers_[0][2],
-                                            map(float, num.named_steps["imputer"].statistics_))),
-        "scaler_means": dict(zip(pre.transformers_[0][2],
-                                 map(float, num.named_steps["scaler"].mean_))),
-        "categories": {c: [str(v) for v in cats] for c, cats in
-                       zip(pre.transformers_[1][2], cat.named_steps["encoder"].categories_)},
+        "numeric_imputer_medians": dict(
+            zip(pre.transformers_[0][2], map(float, num.named_steps["imputer"].statistics_))
+        ),
+        "scaler_means": dict(
+            zip(pre.transformers_[0][2], map(float, num.named_steps["scaler"].mean_))
+        ),
+        "categories": {
+            c: [str(v) for v in cats]
+            for c, cats in zip(pre.transformers_[1][2], cat.named_steps["encoder"].categories_)
+        },
     }
 
 
@@ -238,23 +267,38 @@ def train(config_path: Path = DEFAULT_CONFIG) -> dict:
 
     meta = {
         "created_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "artifact": {"path": rel(out["model"]), "sha256": file_sha256(out["model"]),
-                     "format": "joblib (pickle) - load trusted files only"},
-        "task": {"target": cfg["target"]["column"], "positive_class": "Yes -> 1",
-                 "negative_class": "No -> 0", "threshold": cfg["threshold"]},
+        "artifact": {
+            "path": rel(out["model"]),
+            "sha256": file_sha256(out["model"]),
+            "format": "joblib (pickle) - load trusted files only",
+        },
+        "task": {
+            "target": cfg["target"]["column"],
+            "positive_class": "Yes -> 1",
+            "negative_class": "No -> 0",
+            "threshold": cfg["threshold"],
+        },
         "source": {"path": cfg["source"], "sha256": source_hash},
-        "split": {**cfg["split"], "stratified_on": cfg["target"]["column"],
-                  "sizes": {k: len(v) for k, v in splits.items()},
-                  "assignment_file": rel(out["split_assignment"]),
-                  "assignment_sha256": file_sha256(out["split_assignment"])},
-        "features": {**cfg["features"], "never_inputs": [id_col, cfg["target"]["column"]],
-                     "input_types": "numeric: float (NaN allowed, blank text -> NaN, "
-                                    "malformed text rejected); categorical: str",
-                     "parsing": "telco_churn.features.prepare_features (before the pipeline)"},
+        "split": {
+            **cfg["split"],
+            "stratified_on": cfg["target"]["column"],
+            "sizes": {k: len(v) for k, v in splits.items()},
+            "assignment_file": rel(out["split_assignment"]),
+            "assignment_sha256": file_sha256(out["split_assignment"]),
+        },
+        "features": {
+            **cfg["features"],
+            "never_inputs": [id_col, cfg["target"]["column"]],
+            "input_types": "numeric: float (NaN allowed, blank text -> NaN, "
+            "malformed text rejected); categorical: str",
+            "parsing": "telco_churn.features.prepare_features (before the pipeline)",
+        },
         "preprocessing": cfg["preprocessing"],
         "learned_statistics": learned_statistics(selected),
-        "selected_model": {"name": chosen,
-                           "params": selected.named_steps["classifier"].get_params()},
+        "selected_model": {
+            "name": chosen,
+            "params": selected.named_steps["classifier"].get_params(),
+        },
         "selection": {**cfg["selection"], "decision": reason},
         "validation_metrics": next(r for r in rows if r["model"] == chosen),
         "test_metrics_after_selection": test_metrics,
@@ -270,23 +314,32 @@ def train(config_path: Path = DEFAULT_CONFIG) -> dict:
 
 def write_selection_note(path, rows, chosen, reason, test_metrics, cfg):
     lines = [
-        "# Model selection (generated by `uv run telco-train`)", "",
+        "# Model selection (generated by `uv run telco-train`)",
+        "",
         f"Primary metric chosen **before** comparison: `{cfg['selection']['metric']}` "
         f"on the validation split (positive class Churn = Yes).",
-        f"Rule: {cfg['selection']['rule']}", "",
+        f"Rule: {cfg['selection']['rule']}",
+        "",
         "| model | avg precision | precision | recall | F1 | accuracy | fit s |",
         "|---|---:|---:|---:|---:|---:|---:|",
     ]
     for r in rows:
-        lines.append(f"| {r['model']} | {r['average_precision']:.4f} | {r['precision']:.3f} | "
-                     f"{r['recall']:.3f} | {r['f1']:.3f} | {r['accuracy']:.3f} | "
-                     f"{r['fit_seconds']:.2f} |")
-    lines += ["", f"Threshold for precision/recall/F1/accuracy: {cfg['threshold']}.", "",
-              f"**Decision:** {reason}", "",
-              "Test split, evaluated once after the decision (not used to choose): "
-              f"average precision {test_metrics['average_precision']:.4f}, "
-              f"recall {test_metrics['recall']:.3f}, precision {test_metrics['precision']:.3f}.",
-              ""]
+        lines.append(
+            f"| {r['model']} | {r['average_precision']:.4f} | {r['precision']:.3f} | "
+            f"{r['recall']:.3f} | {r['f1']:.3f} | {r['accuracy']:.3f} | "
+            f"{r['fit_seconds']:.2f} |"
+        )
+    lines += [
+        "",
+        f"Threshold for precision/recall/F1/accuracy: {cfg['threshold']}.",
+        "",
+        f"**Decision:** {reason}",
+        "",
+        "Test split, evaluated once after the decision (not used to choose): "
+        f"average precision {test_metrics['average_precision']:.4f}, "
+        f"recall {test_metrics['recall']:.3f}, precision {test_metrics['precision']:.3f}.",
+        "",
+    ]
     Path(path).write_text("\n".join(lines), encoding="utf-8")
 
 
@@ -298,11 +351,13 @@ def main(argv=None) -> None:
     v = meta["validation_metrics"]
     print(f"Selected: {meta['selected_model']['name']}")
     print(f"  {meta['selection']['decision']}")
-    print(f"  valid: AP={v['average_precision']:.4f} recall={v['recall']:.3f} "
-          f"precision={v['precision']:.3f} accuracy={v['accuracy']:.3f}")
+    print(
+        f"  valid: AP={v['average_precision']:.4f} recall={v['recall']:.3f} "
+        f"precision={v['precision']:.3f} accuracy={v['accuracy']:.3f}"
+    )
     print(f"Artifact : {meta['artifact']['path']} (sha256 {meta['artifact']['sha256'][:12]}...)")
-    print(f"Metadata : models/churn_pipeline.metadata.json")
-    print(f"Reports  : reports/tp02/ (first_model.json, comparison.csv/json, selection.md)")
+    print("Metadata : models/churn_pipeline.metadata.json")
+    print("Reports  : reports/tp02/ (first_model.json, comparison.csv/json, selection.md)")
 
 
 if __name__ == "__main__":

@@ -49,9 +49,15 @@ def main() -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(result, indent=2))
-    ok = all(result[k] for k in ("artifact_sha256_matches_metadata", "scores_agree",
-                                 "learned_statistics_match_metadata",
-                                 "predict_left_statistics_unchanged"))
+    ok = all(
+        result[k]
+        for k in (
+            "artifact_sha256_matches_metadata",
+            "scores_agree",
+            "learned_statistics_match_metadata",
+            "predict_left_statistics_unchanged",
+        )
+    )
     print("RELOAD CHECK:", "OK" if ok else "FAILED")
     return 0 if ok else 1
 

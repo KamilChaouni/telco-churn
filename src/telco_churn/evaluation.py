@@ -34,8 +34,10 @@ def evaluate(model, X, y, threshold: float = 0.5) -> dict:
         "threshold": threshold,
         "confusion_matrix": {
             "labels": "rows = true [0=No, 1=Yes], columns = predicted [0=No, 1=Yes]",
-            "tn": int(matrix[0, 0]), "fp": int(matrix[0, 1]),
-            "fn": int(matrix[1, 0]), "tp": int(matrix[1, 1]),
+            "tn": int(matrix[0, 0]),
+            "fp": int(matrix[0, 1]),
+            "fn": int(matrix[1, 0]),
+            "tp": int(matrix[1, 1]),
         },
         "n": int(len(y)),
         "positives": int(np.sum(y)),
