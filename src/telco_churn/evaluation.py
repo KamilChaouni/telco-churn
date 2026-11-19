@@ -22,6 +22,8 @@ def positive_scores(model, X) -> np.ndarray:
 
 
 def evaluate(model, X, y, threshold: float = 0.5) -> dict:
+    """AP from continuous scores; precision/recall/F1/accuracy at `threshold`.
+    Confusion matrix order: rows true [0, 1], columns predicted [0, 1]."""
     scores = positive_scores(model, X)
     predicted = (scores >= threshold).astype(int)
     matrix = confusion_matrix(y, predicted, labels=[0, 1])
