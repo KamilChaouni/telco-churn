@@ -1,0 +1,35 @@
+{
+  "schema_failure": {
+    "raised": true,
+    "error": "Missing required feature column(s): ['Contract']",
+    "verdict": "visible failure, no prediction produced"
+  },
+  "supported_missingness": {
+    "rows_changed": 10,
+    "imputed_with_train_median": 1373.625,
+    "mean_score_before": 0.18,
+    "mean_score_after": 0.1775,
+    "max_abs_change": 0.1517,
+    "verdict": "accepted by policy (blank text and NaN -> train median); scores change for those rows"
+  },
+  "shift_renamed_category": {
+    "rows_changed": 9,
+    "unseen_values": [
+      "Monthly"
+    ],
+    "mean_score_before": 0.18,
+    "mean_score_after": 0.1188,
+    "max_abs_change": 0.2266,
+    "raised": false,
+    "verdict": "no error (handle_unknown='ignore' -> all-zero one-hot), but predictions for these customers are no longer backed by training data"
+  },
+  "shift_out_of_range_numeric": {
+    "train_max_MonthlyCharges_hint": "about 119 in the source data",
+    "batch_max_after": 1168.0,
+    "mean_score_before": 0.18,
+    "mean_score_after": 0.2333,
+    "max_abs_change": 0.1645,
+    "raised": false,
+    "verdict": "no error: the schema is valid, only monitoring of input distributions would catch it"
+  }
+}
