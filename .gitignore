@@ -29,6 +29,10 @@ reports/*
 # are deliberately tracked (small, non-sensitive, needed for assessment).
 !reports/tp02/
 reports/tp02/example_predictions.csv
+# TP03: small summary + evidence tracked; scratch files not
+!reports/tp03/
+!reports/tp03_summary.md
+reports/tp03/_tmp/
 models/*
 !models/.gitkeep
 !models/churn_pipeline.joblib
@@ -37,3 +41,9 @@ models/*
 !models/reference_batch.csv
 
 # Deliberately tracked: small, non-sensitive evidence in evidence/tp01/
+
+# TP03 - MLflow local tracking storage (kept on disk for the demo, never committed)
+mlflow.db
+mlflow.db-*
+mlartifacts/
+mlruns/
