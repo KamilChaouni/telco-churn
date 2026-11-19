@@ -89,14 +89,21 @@ telco-churn/
 ├── pyproject.toml, uv.lock   dependency declaration / resolved lock
 ├── .python-version           interpreter for uv
 ├── .gitignore                env, credentials, data and generated outputs policy
+├── configs/train.json        TP02 training configuration (seed, features, candidates)
 ├── src/telco_churn/          importable package (reusable code)
-│   └── dataset.py            raw reading + inspection, CLI `telco-inspect`
-├── scripts/compare_reports.py thin helper for recreation evidence
+│   ├── dataset.py            raw reading + inspection, CLI `telco-inspect`
+│   ├── features.py           feature schema + stateless input parsing
+│   ├── pipeline.py           builders of UNFITTED preprocessing + classifier
+│   ├── evaluation.py         metrics for the positive class Churn = Yes
+│   ├── training.py           split, comparison, selection, save — CLI `telco-train`
+│   └── prediction.py         load artifact + predict, CLI `telco-predict`
+├── scripts/                  thin helpers: compare_reports, check_reload, failure_experiment
 ├── tests/                    focused behaviour checks
 ├── data/raw/telco.csv        original snapshot, immutable, NOT in Git
 ├── references/data_source.md provenance, hash, field roles and notes
-├── reports/                  generated reports (ignored by Git)
-└── evidence/tp01/            tracked, small submission evidence
+├── models/                   selected fitted pipeline + metadata (tracked for TP02 submission)
+├── reports/                  generated reports; only reports/tp02/ is tracked
+└── evidence/tp01/, tp02/     tracked, small submission evidence
 ```
 
 Five location choices:
@@ -106,16 +113,14 @@ Five location choices:
 4. Provenance (URL, commit, hash, incident) is documentation → `references/`.
 5. Tests sit in `tests/` and use tiny synthetic data, so they run without the raw CSV.
 
-Added in TP02 (not created yet, to avoid empty placeholders):
-`data/interim/`, `data/processed/` (persisted transformed data, only if useful),
-`configs/train.json` (hyperparameters), `src/telco_churn/pipeline.py` / `training.py` /
-`prediction.py` (model-building **code**), `models/` (fitted pipelines saved with joblib —
-**outputs**, ignored by Git), `notebooks/` (exploration only), `reports/figures/`.
+Still not created (no use yet): `data/interim/`, `data/processed/`, `notebooks/`, `reports/figures/`.
 
 ## Git policy
 
-- Not versioned: `.venv*`, credentials, everything under `data/`, `reports/`, `models/`.
-- Versioned: code, lock file, docs, and `evidence/tp01/` (small, non-sensitive).
+- Not versioned: `.venv*`, credentials, everything under `data/`, `reports/` (except `reports/tp02/`).
+- Versioned: code, lock file, docs, `evidence/`, and — for TP02 submission only — the selected
+  artifact in `models/` (≈ 2 MB, non-sensitive, needed for the reload check). Later TPs will move
+  artifacts to a model registry instead of Git.
 - Changes go through a branch + pull request (e.g. `docs/project-onboarding`).
 
 ## Known limits
@@ -137,6 +142,7 @@ uv sync --locked                          # adds scikit-learn from uv.lock
 uv run telco-train                        # split, first model, comparison, selection, save
 uv run python scripts/check_reload.py     # fresh process: reload artifact, predict, compare
 uv run pytest -q                          # focused reliability checks (section 5)
+uv run python scripts/failure_experiment.py   # optional extension 3 (inference only)
 uv run telco-predict --input models/reference_batch.csv --output reports/tp02/example_predictions.csv
 ```
 
@@ -206,6 +212,25 @@ training medians (not the full-data ones); predicting does not change them; blan
 `TotalCharges` and unseen categories follow the policy; malformed numbers and missing columns
 fail visibly; a fresh Python process reloads the artifact and gets identical scores.
 `scripts/check_reload.py` writes `reports/tp02/reload_check.json`.
+
+### Optional extension — failure experiment
+
+`scripts/failure_experiment.py` alters a **copy** of the reference batch and writes
+`reports/tp02/failure_experiment.json`:
+
+| Change | What happens | Kind |
+|---|---|---|
+| `Contract` column dropped | `ValueError: Missing required feature column(s)` — no prediction | schema failure |
+| `TotalCharges` blank / NaN (10 rows) | imputed with the train median 1373.625; those scores move (max 0.15) | supported missingness |
+| `Month-to-month` renamed `Monthly` (9 rows) | no error, all-zero one-hot; mean score 0.180 → 0.119 | distribution shift (silent) |
+| `MonthlyCharges` × 10 | no error; mean score 0.180 → 0.233 | distribution shift (silent) |
+
+Only the first one can be caught by schema validation. The last two produce plausible-looking
+scores that are wrong in a business sense: they need input monitoring (later TPs), not a parser.
+
+### Peer exchange
+
+Recorded in [evidence/tp02/peer_review.md](evidence/tp02/peer_review.md).
 
 ### Limits
 
