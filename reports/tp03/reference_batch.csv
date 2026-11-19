@@ -1,0 +1,21 @@
+customerID,tenure,MonthlyCharges,TotalCharges,Contract,InternetService,PaymentMethod,score_original,pred_original
+1777-JYQPJ,2,24.3,38.45,Month-to-month,DSL,Mailed check,0.48137041553683807,0
+5804-HYIEZ,70,106.05,7554.05,Month-to-month,Fiber optic,Electronic check,0.28279408857793764,0
+2969-WGHQO,7,69.45,477.05,One year,DSL,Electronic check,0.2165851843766006,0
+7354-OIJLX,9,75.85,724.65,Month-to-month,Fiber optic,Electronic check,0.5946990499202713,1
+5201-USSQZ,26,85.9,2196.45,Month-to-month,Fiber optic,Credit card (automatic),0.2587652266440164,0
+0017-IUDMW,72,116.8,8456.75,Two year,Fiber optic,Credit card (automatic),0.02141608697640024,0
+0599-XNYDO,20,69.8,1540.35,Month-to-month,Fiber optic,Bank transfer (automatic),0.26202255040995337,0
+2146-EGVDT,59,19.3,1192.7,Two year,No,Credit card (automatic),0.022243153335353885,0
+3400-ESFUW,55,57.55,3046.4,Two year,DSL,Bank transfer (automatic),0.007634764550896406,0
+1699-UOTXU,60,61.4,3638.25,Two year,DSL,Electronic check,0.0409376757705796,0
+5813-UECBU,33,83.85,2716.3,Month-to-month,Fiber optic,Credit card (automatic),0.36928083675719514,0
+1231-YNDEK,58,19.15,1035.5,Two year,No,Bank transfer (automatic),0.05505206182836931,0
+9762-YAQAA,39,81.4,3213.75,One year,Fiber optic,Credit card (automatic),0.10023411765595464,0
+1585-MQSSU,17,51.5,900.5,Month-to-month,DSL,Mailed check,0.15665469570088572,0
+4422-QVIJA,35,50.15,1655.35,Month-to-month,DSL,Mailed check,0.06114677269903947,0
+9560-ARGQJ,16,81.0,1312.15,Month-to-month,Fiber optic,Electronic check,0.4514869615438782,0
+2923-ARZLG,0,19.7, ,One year,No,Mailed check,0.11027438535221701,0
+1047-RNXZV,43,19.55,876.15,Two year,No,Mailed check,0.0028739176156902676,0
+3957-SQXML,34,24.95,894.3,Two year,No,Credit card (automatic),0.018812857539771154,0
+0743-HRVFF,51,56.15,2898.95,One year,DSL,Electronic check,0.08510174875022636,0

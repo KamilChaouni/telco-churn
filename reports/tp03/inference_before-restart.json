@@ -1,0 +1,16 @@
+{
+  "label": "before-restart",
+  "checked_at_utc": "2026-11-19T09:39:40+00:00",
+  "model_uri": "models:/telco-churn@candidate",
+  "registered_version": "1",
+  "source_run_id": "2f5e21cba9054c5394efb91b170f2123",
+  "logged_model_source": "models:/m-22d2201ec2d54f20aa80b867ce43df6b",
+  "rows": 20,
+  "predicted_churners": 1,
+  "fit_called": false,
+  "labels_used": false,
+  "max_abs_score_difference": 0.0,
+  "tolerance": 1e-09,
+  "scores_agree": true,
+  "class_predictions_agree": true
+}

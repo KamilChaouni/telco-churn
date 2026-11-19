@@ -238,3 +238,58 @@ Threshold 0.5 is not tuned to a business cost; probabilities are not checked for
 median imputation of `TotalCharges` for `tenure = 0` customers is a simplification (0 would be
 more literal); timings are descriptive only; a pickle artifact depends on compatible library
 versions. Experiment tracking and model versioning come in TP03.
+
+## TP03 — Experiment tracking and model registry (MLflow)
+
+### Commands
+
+Terminal 1 — tracking server, from the project root (keep it running):
+
+```sh
+uv run python -m mlflow server --host 127.0.0.1 --port 5000 --backend-store-uri sqlite:///mlflow.db --artifacts-destination ./mlartifacts
+```
+
+UI: <http://127.0.0.1:5000>. `python -m mlflow` is used instead of the `mlflow` command because
+Windows Smart App Control blocks the generated `mlflow.exe` launcher on this machine; both are
+equivalent. Port busy → use 5001 everywhere and pass `--tracking-uri http://127.0.0.1:5001`.
+
+Terminal 2:
+
+```sh
+uv run python -m telco_churn.tracking                      # 4 runs + register telco-churn, alias @candidate
+uv run python -m telco_churn.registry_inference            # fresh process: load @candidate, predict, compare
+```
+
+`tracking` options: `--no-register` (register by hand in the UI instead), `--experiment NAME`,
+`--tracking-uri URI` (or `MLFLOW_TRACKING_URI`). Commit code changes **before** the runs: the Git
+commit is logged, and uncommitted files are listed in `provenance.json` / tag `git_dirty`.
+
+### What is recorded (one run per candidate, experiment `telco-churn-tp03`)
+
+| Kind | Content |
+|---|---|
+| Parameters | `model_type`, `clf_*` hyperparameters from `configs/train.json`, `split_seed`, `split_ratios`, `threshold`, preprocessing choices |
+| Metrics | `val_average_precision` (primary), `val_precision`, `val_recall`, `val_f1`, `val_accuracy`, `fit_seconds` — validation only |
+| Tags | `git_commit`, `git_dirty`, `data_sha256` (original CSV), `split_assignment_sha256` |
+| Dataset inputs | `telco_train` (context `training`), `telco_valid` (context `validation`): name, digest, schema |
+| Artifacts | `evaluation/confusion_matrix_valid.csv/json`, `provenance.json`, `split/split_assignment.csv` |
+| Model | `churn_pipeline`: fitted preprocessing + classifier (`mlflow.sklearn.log_model`, with input example and signature) |
+
+The selected model is registered as **`telco-churn`** and the alias **`candidate`** points at
+that version. The test split is never evaluated in TP03.
+
+### Where local tracking data live and how to recover the model
+
+- `mlflow.db` (SQLite): runs, params, metrics, tags, dataset records, registry, aliases.
+- `mlartifacts/`: the model files and other artifacts.
+- Both are ignored by Git and stay on this machine. Stopping the server deletes nothing; restart
+  it from the project root with the same command.
+- Recover the selected pipeline: `mlflow.sklearn.load_model("models:/telco-churn@candidate")`
+  with the server running (or the pinned `models:/telco-churn/1`), in this project's environment.
+
+**Limitation:** run IDs and `models:/` URIs only resolve against *this* server. A colleague on
+another machine needs a shared tracking server, or a copy of both `mlflow.db` and `mlartifacts/`,
+plus the raw CSV (hash-verified), the code at the logged commit and `uv sync --locked`.
+
+Results, identifiers and screenshots: [reports/tp03_summary.md](reports/tp03_summary.md).
+Answers to the TP questions: [evidence/tp03/reponses_questions.md](evidence/tp03/reponses_questions.md).

@@ -1,0 +1,98 @@
+{
+  "tracking_uri": "http://127.0.0.1:5000",
+  "experiment": {
+    "name": "telco-churn-tp03",
+    "id": "2"
+  },
+  "selected": {
+    "candidate": "random_forest",
+    "run_name": "forest-300trees-leaf10",
+    "run_id": "2f5e21cba9054c5394efb91b170f2123",
+    "logged_model_uri": "models:/m-22d2201ec2d54f20aa80b867ce43df6b",
+    "logged_model_id": "m-22d2201ec2d54f20aa80b867ce43df6b"
+  },
+  "registry": {
+    "name": "telco-churn",
+    "version": "1",
+    "alias": "candidate",
+    "alias_resolves_to_version": "1",
+    "alias_uri": "models:/telco-churn@candidate",
+    "version_uri": "models:/telco-churn/1"
+  },
+  "selection": {
+    "metric": "average_precision",
+    "split": "valid",
+    "tie_tolerance": 0.01,
+    "decision": "Best validation average_precision = 0.6619. Candidates within 0.01: ['random_forest']. Chosen: random_forest (average_precision = 0.6619), no other candidate is that close."
+  },
+  "candidates": [
+    {
+      "model": "majority_baseline",
+      "run_name": "baseline-most-frequent",
+      "run_id": "c4d5dc46fa734fce9b2c2680f8e8637c",
+      "model_uri": "models:/m-fc62a452204b47e1adf759ad3c86d6fb",
+      "average_precision": 0.2654364797728886,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "accuracy": 0.7345635202271115,
+      "fit_seconds": 0.04138569999486208
+    },
+    {
+      "model": "logistic_regression",
+      "run_name": "logistic-default-C1",
+      "run_id": "4ba04e3c3fa649729d647dc978fbc529",
+      "model_uri": "models:/m-dc848e274df84c989bc0785a9be5f416",
+      "average_precision": 0.6474664703085159,
+      "precision": 0.6644295302013423,
+      "recall": 0.5294117647058824,
+      "f1": 0.5892857142857143,
+      "accuracy": 0.8041163946061036,
+      "fit_seconds": 0.1674759999732487
+    },
+    {
+      "model": "decision_tree",
+      "run_name": "tree-depth5-leaf20",
+      "run_id": "6adb45e74eb24813852a4b3e8954aa40",
+      "model_uri": "models:/m-b0baccd9c6aa4ed5abfb1a26b8cf6260",
+      "average_precision": 0.6173000162034762,
+      "precision": 0.635593220338983,
+      "recall": 0.6016042780748663,
+      "f1": 0.6181318681318682,
+      "accuracy": 0.8026969481902059,
+      "fit_seconds": 0.1525565999909304
+    },
+    {
+      "model": "random_forest",
+      "run_name": "forest-300trees-leaf10",
+      "run_id": "2f5e21cba9054c5394efb91b170f2123",
+      "model_uri": "models:/m-22d2201ec2d54f20aa80b867ce43df6b",
+      "average_precision": 0.6619280395282521,
+      "precision": 0.6462093862815884,
+      "recall": 0.4786096256684492,
+      "f1": 0.5499231950844854,
+      "accuracy": 0.7920511000709723,
+      "fit_seconds": 3.10359829996014
+    }
+  ],
+  "git_commit": "f0a23dacf9d4a4858d643b69c2609ca59acb5130",
+  "git_dirty_files": [
+    "evidence/tp01/handover.md",
+    "instructions.txt"
+  ],
+  "data_sha256": "16320c9c1ec72448db59aa0a26a0b95401046bef5d02fd3aeb906448e3055e91",
+  "split_assignment_sha256": "bf235075965a5a6260a2d2c4b9e66b0bd39325440d6118395c140fd4e2fafeb6",
+  "split_assignment_same_as_tp02": true,
+  "threshold": 0.5,
+  "environment": {
+    "python": "3.12.15",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "scikit-learn": "1.9.1",
+    "pandas": "3.1.0",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "joblib": "1.6.0",
+    "telco-churn": "0.1.0",
+    "mlflow": "3.18.0"
+  }
+}
