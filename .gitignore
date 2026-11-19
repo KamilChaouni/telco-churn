@@ -32,6 +32,7 @@ reports/tp02/example_predictions.csv
 # TP03: small summary + evidence tracked; scratch files not
 !reports/tp03/
 !reports/tp03_summary.md
+!reports/tp04_summary.md
 reports/tp03/_tmp/
 # identical to models/split_assignment.csv (same SHA-256, checked by telco_churn.tracking)
 reports/tp03/split_assignment.csv

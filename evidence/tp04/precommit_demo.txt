@@ -1,0 +1,50 @@
+# Attempt 1: badly formatted docstring change (trailing spaces, "positive_scores( model,X )")
+$ git diff src/telco_churn/evaluation.py
+--- a/src/telco_churn/evaluation.py$
++++ b/src/telco_churn/evaluation.py$
+-    scores = positive_scores(model, X)$
++    """AP from continuous scores; precision/recall/F1/accuracy at `threshold`.   $
++    Confusion matrix order: rows true [0, 1], columns predicted [0, 1]."""$
++    scores = positive_scores( model,X )$
+
+$ git add src/telco_churn/evaluation.py && git commit -m "Document evaluate() metric definitions"
+[WARNING] Unstaged files detected.
+[INFO] Stashing unstaged files to C:\Users\kamil\.cache\pre-commit\patch1795082346-36008.
+ruff check...............................................................Passed
+ruff format..............................................................Failed
+- hook id: ruff-format
+- files were modified by this hook
+
+1 file reformatted
+
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...........................................(no files to check)Skipped
+check toml...........................................(no files to check)Skipped
+check for added large files..............................................Passed
+[INFO] Restored changes from C:\Users\kamil\.cache\pre-commit\patch1795082346-36008.
+git commit failed (hook modified files) -> commit blocked: HEAD still 9965849 TP04: behaviour tests, Ruff config + fixes, coverage settings, pre-commit hooks)
+
+$ git diff   (changes made by the hooks, not yet staged)
+--- a/src/telco_churn/evaluation.py
++++ b/src/telco_churn/evaluation.py
+-    """AP from continuous scores; precision/recall/F1/accuracy at `threshold`.   
++    """AP from continuous scores; precision/recall/F1/accuracy at `threshold`.
+-    scores = positive_scores( model,X )
++    scores = positive_scores(model, X)
+
+# Attempt 2: reviewed the hook changes above (formatting only), re-stage and retry
+$ git add src/telco_churn/evaluation.py && git commit -m "Document evaluate() metric definitions"
+[WARNING] Unstaged files detected.
+[INFO] Stashing unstaged files to C:\Users\kamil\.cache\pre-commit\patch1795082356-13416.
+ruff check...............................................................Passed
+ruff format..............................................................Passed
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...........................................(no files to check)Skipped
+check toml...........................................(no files to check)Skipped
+check for added large files..............................................Passed
+[INFO] Restored changes from C:\Users\kamil\.cache\pre-commit\patch1795082356-13416.
+[feat/tp04-quality 320dfd5] Document evaluate() metric definitions
+ 1 file changed, 2 insertions(+)
+HEAD now: 320dfd5 Document evaluate() metric definitions

@@ -293,3 +293,35 @@ plus the raw CSV (hash-verified), the code at the logged commit and `uv sync --l
 
 Results, identifiers and screenshots: [reports/tp03_summary.md](reports/tp03_summary.md).
 Answers to the TP questions: [evidence/tp03/reponses_questions.md](evidence/tp03/reponses_questions.md).
+
+## TP04 — Tests and code quality
+
+### Setup (once per clone)
+
+```sh
+uv sync --locked                          # includes dev tools: pytest, pytest-cov, ruff, pre-commit
+uv run python -m pre_commit install       # installs the Git hook locally (not cloned with the repo)
+```
+
+`python -m pre_commit` is used because Windows Smart App Control blocks the generated
+`pre-commit.exe` launcher on this machine; `uv run pre-commit ...` is equivalent elsewhere.
+
+### Commands — which one finds what
+
+| Command | Detects |
+|---|---|
+| `uv run pytest -q` | **behaviour** regressions: input contract, probabilities, persistence, splits, leakage |
+| `uv run ruff check src/telco_churn tests scripts` | **static** problems: syntax errors, unused/undefined names, import order (E4, E7, E9, F, I) |
+| `uv run ruff format --check src/telco_churn tests scripts` | **formatting** only (no behaviour); `ruff format ...` applies it |
+| `uv run pytest --cov=telco_churn --cov-report=term-missing --cov-report=xml:coverage.xml` | **untested code**: lines/branches no test executed |
+| `uv run python -m pre_commit run --all-files` | the lint/format/whitespace hooks that also run on every `git commit` |
+
+Behaviour tests (`tests/test_input_contract.py`, `test_prediction.py`, `test_persistence.py`) use
+a 16-customer synthetic fixture in `tests/conftest.py`: no CSV, no network, no MLflow, ~2 s.
+`tests/test_pipeline.py` (TP02) additionally uses the real CSV and is skipped if it is absent.
+
+Hooks run Ruff and whitespace checks only — never training, MLflow or pytest. Hooks are local
+and can be bypassed, so TP05 will run the same checks in CI. Caches (`.pytest_cache/`,
+`.ruff_cache/`, `.coverage`, `coverage.xml`, `htmlcov/`) are ignored by Git.
+
+Evidence and explanations: [reports/tp04_summary.md](reports/tp04_summary.md).
